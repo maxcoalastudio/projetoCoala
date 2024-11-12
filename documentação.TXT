@@ -1,0 +1,55 @@
+"Passo a passo da criação da engine em python"
+_criando o ambiente virtual venv dentro da pasta do projeto vamos usar o comando no terminal:
+python -m venv NomeDoAmbiente
+venv\Scripts\activate  
+
+_criando o repositorio dentro da pasta principal da engine
+git init
+git add .
+git commit - m "criando uma engine"
+git branch -M main #trocando o nome da branch principal
+git remote add origin https://github.com/maxcoalastudio/RepositorioCriadoNoGit.git
+git push -u origin main # empurrando conteudo para a pasta de origem
+
+git add .
+git commit - m "primeiro commit"
+git push
+
+pip install PyOpenGL PyOpenGL-accelerate (para instalar o OpenGL e otimização) 
+vamos usar uma biblioteca para abrir janelas, vamos usar o GLFW , sendo leve, facil de instalar e de usar
+pip instal glfw (grafic library framework)
+
+vamos conferir com "pip list" e verificar python 3.8.10, pythonOpenGL 3.1.7, GLGW 2.6.2, VS CODE 1.93.1
+
+
+no decorrer das aulas vamos instalando mias bibliotecas.
+
+vamos apenas abrir uma janela com glfw
+
+vamos criar uma função main
+import glfw
+#Função Principal
+def main():
+    glfw.init()
+    #criando a janela(largura e altura, nome da janela, monitor, janela compartilhada)
+    window= glfw.create_window(500,500,'Itro V0.1', None, None)
+    glfw.make_context_current(window)
+    while not glfw.window_shoud_close(window):
+	glfw.poll_events()
+	swap_buffers(window)
+    glfw.terminate()
+
+if __name__ == '__main__':
+    main()
+
+muitas funções do GLFW usam um objeto que essa função retorna do tipo janela, vamos add essa função dentro de uma variavel "window"
+e a primeira função que ja vai usar esse objeto é a função de contexto de openGL atual do glfw
+openGL é uma maquina de estados, onde um estado é definido pelos valores atuais das variaveis interna do openGL, e um contexto do openGl armazena 
+todas essas variaveis internas e mantem o estado da OpenGL
+do jeito que fizemos vamos abrir e fechar a janela automaticamente
+para manter ela aberta vamos fazer um laço , diferente da GLUT, aqui precisamos usar o uma condição dentro da GLFW que é normalmente Falsa mas se torna Verdadeira quando você clica no X da janela
+então usamos o while  pra conferir esse evento, e colocamos a nossa janela pra ser fechada caso ela seja Verdadeira
+e colocamos um poll_events(), mesmo que nossa aplicação nesse momento não va fazer tratamento de teclado mouse etc, o clique do X deve ser tratado com essa inbstrução
+mas tem outra variante que não interrompe a execução do laço glfw.wait_events(), enquanto esse que estamos usando interrompe
+vamos usar uma ultima instrução pra mostrar a janela que é a swap_buffers(window), o glfw por padrao usa 2 frame buffers enquanto é executado , um fica exibido na janela, enquanto o outro fica atras em background desenhado enquanto isso.
+usamos o terminate fora do laço depois que o x for pressionado, para poder fechar o glfw
