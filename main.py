@@ -12,7 +12,7 @@ def main():
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    """
+    
     #Desenhando figuras Bidimensionais
     vertices = [
         [-0.5, 0.5, 0.0],
@@ -47,16 +47,16 @@ def main():
 
     #limpando o fundo com uma cor predefinida
     glClearColor(0.0, 0.2, 0.4, 1)#cores de limpeza de background
-    """
+    
     while not glfw.window_should_close(window):#enquanto nao verdadeira o evento do X a janela continua executando em loop
         glfw.poll_events()#trata eventos de cliques de botões, mouse , teclado , essa função interrompe o loop
 
         glClear(GL_COLOR_BUFFER_BIT)#limpa a tela com a cor definida em glClearColor
 
         #chamando as figuras bidimensionais
-        #quads()#desenhando o quadrado
-        #tris()#desenhando o triangulo
-        #circle(0.4, -0.3, 0.3, 20)
+        quads()#desenhando o quadrado
+        tris()#desenhando o triangulo
+        circle(0.4, -0.3, 0.3, 20)
         
         glfw.swap_buffers(window)#2 framebuffers são usados, um pra background e outro pra desenhar 
         
