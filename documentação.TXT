@@ -53,3 +53,4 @@ e colocamos um poll_events(), mesmo que nossa aplicação nesse momento não va 
 mas tem outra variante que não interrompe a execução do laço glfw.wait_events(), enquanto esse que estamos usando interrompe
 vamos usar uma ultima instrução pra mostrar a janela que é a swap_buffers(window), o glfw por padrao usa 2 frame buffers enquanto é executado , um fica exibido na janela, enquanto o outro fica atras em background desenhado enquanto isso.
 usamos o terminate fora do laço depois que o x for pressionado, para poder fechar o glfw
+
