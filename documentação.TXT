@@ -146,3 +146,47 @@ poderi aser 4f com a cor alpha mas vamos nos ater apenas nisso por enquanto
 se eu colocar glColor3f antes de desenhar um vertice, ele vai interpolar a cor dele com as outras cores
 
 se eu colocar antes da geometria interia ele colore os tres vertices e interpola com a mesma cor
+a interpolação é bilinear , tem uma suavização entre as interpolações de cores.
+queremos transitar para o opengl moderno, então nao queremos ficar pra sempre no legacy
+
+ao invez de ficar colocando glvertex com  coordenada a coordenada, vamos criar um tipo de lista contendo todas as coordenadas , vamos criar um laço passando por todas as coordenadas , vamos criar um
+
+vamos criar globalmente a lista vertices = [], na qual vai conter as tres coordenadas
+#depois das importações das libs vai ficar assim 
+vertices = [
+    [-0.5, -0.5],
+    [0.5, -0.5],
+    [0.0, 0.3]
+]
+# a função render fica assim :
+def render():
+    glClear(GL_COLOR_BUFFER_BIT)#limpando o buffer dos pixels
+    glColor3f(1,0,0)                                                                   
+    glBegin(GL_TRIANGLES)
+    for v in vertices:
+        glVertex2fv(v)
+    glEnd()
+
+# nesse caso estamos add uma cor fixa para cada vertice, normalmente a maioria das aplicações temos um atributo deiferente pra cada vertice, e outros atributos
+vamos criar tambem uma lista global para cores  logo abaixo da lista vertices, um pra cada vertice 
+cores = [
+    [1,0,0],
+    [0,1,0],
+    [0,0,1]
+]
+
+nao vamos usar mais o glColor3f na função render
+
+quero fazer um laço que passe pelas duas listas e defina uma cor para cada vertice
+
+então podemos colocar duas variaveis no for como se fosse uma tupla 
+for v, c in vertices, cores:
+mas assim vai dar um erro, para poder fazer fazer um laço e transitar entre duas listas  ao mesmo tempo e colocando as duas e conectando elas com a instrução zip
+for v, c in zip(vertices, cores):
+ela pega as duas listas e fazer um par pra cada indice equivalentes de cada lista
+[vertices] [cores] em ordem
+glBegin(GL_TRIANGLES) 
+for v, c in zip(vertices, cores):
+    glVertex3fv(c)                  #esse v no final indica que estou passando todos os valores RGB de uma so vez
+    glVertex2fv(v)                  
+glEnd() 
