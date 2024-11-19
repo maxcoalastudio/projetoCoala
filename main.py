@@ -55,7 +55,7 @@ def main():
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     
-    gluPerspective( 45, 800 /600, 0.1, 50) #campo de visao, aspecto, perto, longe
+    gluPerspective( 45, 800 /600, 0.1, 50)#o clip da camera(campo de visao, aspecto ratio, perto, longe)
     glMatrixMode(GL_MODELVIEW) #modelo de visualização
 
     def cube():

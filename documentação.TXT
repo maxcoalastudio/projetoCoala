@@ -53,4 +53,96 @@ e colocamos um poll_events(), mesmo que nossa aplicação nesse momento não va 
 mas tem outra variante que não interrompe a execução do laço glfw.wait_events(), enquanto esse que estamos usando interrompe
 vamos usar uma ultima instrução pra mostrar a janela que é a swap_buffers(window), o glfw por padrao usa 2 frame buffers enquanto é executado , um fica exibido na janela, enquanto o outro fica atras em background desenhado enquanto isso.
 usamos o terminate fora do laço depois que o x for pressionado, para poder fechar o glfw
+analisando instruções do openGL
+glfw.swap_buffers(window) empurra um framebuffer ou seja uma imagem para uma janela(uma região da memoria onde armazena informações de cor para cada pixel, ou seja ela é uma matriz contendo os valores de rgb de cada pixel, esses valores sao pontos flutuantes indo de 0 a 1
 
+se eu quiser desenhar qualquer coisa na tela vou ter que desenhar no frame buffer pra ele jogar pra tela
+pra organizar nossa aplicação vou escrever duas funções com finalidades diferentes
+pra organizar nossa aplicação vou chamar ele de init() #função para configurações iniciais da minha aplicação
+e a render() # tem a finalidade de atualizar a renderização da cena
+
+o framebuffer tem que ser inicializado por que como é um espaço de memoria , ele vem com lixo de memoria , então tem que limpar esse espaço
+nas configurações iniciais eu vou colocar uma cor padrao a ser colocado no fundo da minha janela , vamos usar a instrução glClearColor(1, 1, 1, 1)
+ela nao vai limpara ainda o frame buffer , ela so vai definir a cor de fundo , e para isso não vamos esquecer de importar a lib do openGl que é OpenGL.GL
+
+
+import glfw
+from OpenGL.GL import * 
+#Função PARA CONFIGURAÇÕES INICIAIS DA MINHA aplicação
+def init():
+    glClearColor(1, 1, 1, 1)#cor do fundo da janela
+
+#função para atualizar a renderização da cena
+def render():
+    glClear(GL_COLOR_BUFFER_BIT)#limpeza do framebuffer(informações dos pixels) alem do buffer de cores ela limpa outros buffers, mas queremos so as cores(GL_COLOR_BUFFER_BIT)
+
+#Função Principal
+def main():
+    glfw.init()
+    #criando a janela(largura e altura, nome da janela, monitor, janela compartilhada)
+    window= glfw.create_window(500,500,'Itro V0.1', None, None)
+    glfw.make_context_current(window)
+    init()
+    while not glfw.window_shoud_close(window):
+	    glfw.poll_events()
+        render()
+	    swap_buffers(window)
+    glfw.terminate()
+
+if __name__ == '__main__':
+    main()
+
+#criei as duas funções mas nao estou colocando elas em canto nenhum, se a init é de conmfigurações iniciais temos que chamala antes de começãr o laço   
+#e a função render é pra atualizar a cena o tempo inteiro então vou colocala dentro do laço , entre o tratamento de eventos e a troca de frame buffers
+#agora que eu ja inicializei o framebuffer com uma cor de fundo nele 
+#vamos tentar desenhar alguma coisa
+# o ogpengl possui um sistemas de coordenadas onde definimos nossos objetos, na matematica o sistemas de coorenadas é infinito teoricamente
+entao a opengl foi necessaria definir uma area especifica que vai ser escolhida para ser exibida na tela 
+no caso da opengl a escolha foi de -1 a 1 isso nos 3 eixos
+aumentando no eixo x da esquerda pra direita, o y de baixo para cima, e o z do fundo para frente
+vamos por enquanto desenhar apenas 2D
+para desenharmos vamos usar instruções usando opengl legacy(versão antiga anteriores a versão 3.0) com pipeline de renderização fixa 
+no opengl legacy para desenharmos qualquer coisa temos que colocar as instruções do desennho entre duas funções de inicialização e finalização 
+glBegin() e glEnd()
+entre esses dois vamos colocar os vertices do objeto na qual vamos criar, dentre esses tipos de objetos o opengl oferece alguns como TRIANGULOS, QUADRADOS, E outros
+para usar triangulos usamos glBegin(GL_TRIANGLES)  onde usa conjuntos de 3 floats para cada vertice   
+
+import glfw
+from OpenGL.GL import * 
+#Função PARA CONFIGURAÇÕES INICIAIS DA MINHA aplicação
+def init():
+    glClearColor(1, 1, 1, 1)#cor do fundo da janela
+#função para atualizar a renderização da cena
+def render():
+    glClear(GL_COLOR_BUFFER_BIT)#limpando o buffer dos pixels
+
+    glBegin(GL_TRIANGLES)
+    glVertex2f(-0.5, -0.5)
+    glVertex2f(0.5, -0.5)
+    glVertex2f(0.0, -0.5)
+    glEnd()
+
+
+#Função Principal
+def main():
+    glfw.init()                                                                         #inicializando a API GLFW
+    #criando a janela(largura e altura, nome da janela, monitor, janela compartilhada)
+    window= glfw.create_window(500,500,'Itro V0.1', None, None)
+    glfw.make_context_current(window)                                                   #CRIANDO O CONTEXTO OpenGL da janela
+    init()
+    while not glfw.window_shoud_close(window):                                          #Enquanto a janela nao é fechada
+	    glfw.poll_events()                                                              #tratamento de eventos
+        render()
+	    swap_buffers(window)                                                            #troca de frame buffer(informação de cores dos pixels)
+    glfw.terminate()                                                                    #finaliza a API GLFW
+
+if __name__ == '__main__':
+    main()
+
+#se rodarmos a plicação a janela nao vai aparecer nada por que todos elementos são brancos 
+para eu alterar a cor do triangulo, vou add antes do glBegin uma função que espera 3 flutuante glColor3f()
+poderi aser 4f com a cor alpha mas vamos nos ater apenas nisso por enquanto
+
+se eu colocar glColor3f antes de desenhar um vertice, ele vai interpolar a cor dele com as outras cores
+
+se eu colocar antes da geometria interia ele colore os tres vertices e interpola com a mesma cor
