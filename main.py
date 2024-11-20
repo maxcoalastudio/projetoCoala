@@ -3,16 +3,16 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from numpy import array
 from numpy import cross
-import math
 import time
 from PrimitiveObjects import PrimitiveObjects
+import inputs
 
 
 #variaveis da camera
 camera_pos = array([0.0, 0.0, 3])
 camera_front = array([0.0, 0.0, -1.0])
 camera_up = array([0.0, 1.0, 0.0])
-camera_speed = 0.3
+camera_speed = 0.001
 
 #Função Principal
 def main():
@@ -35,7 +35,7 @@ def main():
     glMatrixMode(GL_MODELVIEW) #modelo de visualização
     
     
-
+    keys={}
     def camera(cp , cf , cup):
         #global camera_pos, camera_front, camera_up
         camera_pos = cp
@@ -47,16 +47,22 @@ def main():
 
     # movimentando a camera 
     def key_callback(window, key, scancode, action, mods):
-        global camera_pos, camera_front, camera_up
-        if action == glfw.PRESS or action == glfw.REPEAT:
-            if key == glfw.KEY_W:
-                camera_pos += camera_speed * camera_front
-            if key == glfw.KEY_S:
-                camera_pos -= camera_speed * camera_front
-            if key == glfw.KEY_A:
-                camera_pos += cross(camera_front, camera_up) * camera_speed
-            if key == glfw.KEY_D:
-                camera_pos -= cross(camera_front, camera_up) * camera_speed
+        if action == glfw.PRESS:
+            keys[key] = True
+        elif action == glfw.RELEASE:
+            keys[key] = False
+    
+    def process_input():
+        global camera_pos, camera_front, camera_up, camera_speed
+        
+        if keys.get(glfw.KEY_W, False):
+            camera_pos += camera_speed * camera_front
+        if keys.get(glfw.KEY_S, False):
+            camera_pos -= camera_speed * camera_front
+        if keys.get(glfw.KEY_A, False):
+            camera_pos += cross(camera_front, camera_up) * camera_speed
+        if keys.get(glfw.KEY_D, False):
+            camera_pos -= cross(camera_front, camera_up) * camera_speed
 
     #aqui chama os objetos primitivos da classe PrimitiveObjects
     cubo = PrimitiveObjects()
@@ -85,6 +91,7 @@ def main():
     while not glfw.window_should_close(window):#enquanto nao verdadeira o evento do X a janela continua executando em loop
         glfw.poll_events()#trata eventos de cliques de botões, mouse , teclado , essa função interrompe o loop
 
+        process_input()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)#limpa a tela com a cor definida em glClearColor e usa a distacia da camera como profundidade pra desenhar as faces mais procimas por ultimo
         # Calcular FPS
         frame_count, start_time = calculate_fps(frame_count, start_time)
