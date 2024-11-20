@@ -1,10 +1,19 @@
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
-#import numpy as np
+from numpy import array
+from numpy import cross
 import math
 import time
 from PrimitiveObjects import PrimitiveObjects
+
+
+#variaveis da camera
+camera_pos = array([0.0, 0.0, 3])
+camera_front = array([0.0, 0.0, -1.0])
+camera_up = array([0.0, 1.0, 0.0])
+camera_speed = 0.3
+
 #Função Principal
 def main():
     glfw.init()
@@ -24,11 +33,36 @@ def main():
     
     gluPerspective( 45, 800 /600, 0.1, 50)#o clip da camera(campo de visao, aspecto ratio, perto, longe)
     glMatrixMode(GL_MODELVIEW) #modelo de visualização
+    
+    
+
+    def camera(cp , cf , cup):
+        #global camera_pos, camera_front, camera_up
+        camera_pos = cp
+        camera_front = cf
+        camera_up = cup
+        glLoadIdentity()
+        camera_target = camera_pos + camera_front
+        gluLookAt(camera_pos[0], camera_pos[1], camera_pos[2], camera_target[0], camera_target[1], camera_target[2], camera_up[0], camera_up[1], camera_up[2])# onde a camera se encontra para onde ela olha, e a orientação dela
+
+    # movimentando a camera 
+    def key_callback(window, key, scancode, action, mods):
+        global camera_pos, camera_front, camera_up
+        if action == glfw.PRESS or action == glfw.REPEAT:
+            if key == glfw.KEY_W:
+                camera_pos += camera_speed * camera_front
+            if key == glfw.KEY_S:
+                camera_pos -= camera_speed * camera_front
+            if key == glfw.KEY_A:
+                camera_pos += cross(camera_front, camera_up) * camera_speed
+            if key == glfw.KEY_D:
+                camera_pos -= cross(camera_front, camera_up) * camera_speed
 
     #aqui chama os objetos primitivos da classe PrimitiveObjects
     cubo = PrimitiveObjects()
 
     glClearColor(0.3, 0.3, 0.3, 1.0)
+    glfw.set_key_callback(window, key_callback)
     angle = 0
     direction = 0
     speed = 1
@@ -55,10 +89,12 @@ def main():
         # Calcular FPS
         frame_count, start_time = calculate_fps(frame_count, start_time)
         glLoadIdentity()
-        glTranslatef(0, 0, -direction* speed)#movendo o cubo para dentro no eixo -z
+        #glTranslatef(0, 0, -direction* speed)#movendo o cubo para dentro no eixo -z
 
-        glRotatef(angle, 1, 1, 1)
+        #glRotatef(angle, 1, 1, 1)#ligando a rotação pra cada eixo
 
+        #criando a camera
+        camera(camera_pos, camera_front, camera_up)
         #chamando as figuras bidimensionais
         #quads()#desenhando o quadrado
         #tris()#desenhando o triangulo
@@ -67,8 +103,9 @@ def main():
         #piramide()
         #esfera(0.08, 20, 20)
         #fazendo o cubo rotacionar pelo angulo acrescido
+
         angle +=  0.1
-        direction += 0.0001 
+        direction = 3 
 
 
         glfw.swap_buffers(window)#2 framebuffers são usados, um pra background e outro pra desenhar 
