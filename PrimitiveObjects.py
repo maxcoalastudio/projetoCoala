@@ -26,25 +26,38 @@ class PrimitiveObjects:
         ]
         #vamos passar as faces por que futuramente vamos passar cores a elas
         faces = [
-            [0, 1, 2, 3],#tras
-            [4, 5, 6, 7],#frente
-            [0, 1, 5 ,4],#topo
-            [2, 3, 7, 6],#esquerda
-            [0, 3, 7, 4],#base
-            [1, 2, 6, 5],#direita
+            [0, 1, 2, 3],#frente
+            [1, 5, 6, 2],#direita
+            [5, 4, 7 ,6],#traseira
+            [4, 0, 3, 7],#esquerda
+            [3, 2, 6, 7],#superior
+            [4, 5, 1, 0],#inferior
         ]
+        normais = [
+            [0, 0, -1],
+            [1, 0, 0],
+            [0, 0, 1],
+            [-1, 0, 0],
+            [0, 1, 0],
+            [0, -1, 0]
+        ]
+        color = [1, 0, 0, 1]
         colors = [
             [1, 0, 0, 0.8], [0, 1, 0, 0.8], [0, 0, 1, 0.8], [1, 1, 0, 0.8], [1, 0, 1, 0.8], [0, 1, 1,0.8 ], [1, 1, 1, 0.8], [1, 0.5, 0, 0.8]
         ]
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
+        glMaterialfv(GL_FRONT, GL_SPECULAR, color)
+        glMaterialfv(GL_FRONT, GL_AMBIENT, color)
+        glMaterialfv(GL_FRONT, GL_SHININESS, 0.5)
 
         glPushMatrix()#abre a matriz
         glTranslatef(self.position[0] + x, self.position[1] + y, self.position[2] + z)
-        
         #iniciando a contrução dele
         glBegin(GL_QUADS)
-        for face in faces:#passando um laço em cada lista(face)
+        for i, face in enumerate(faces):#passando um laço em cada lista(face)
+            glNormal3fv(normais[i])
             for vertex in face:#passando um laço em cada valor de de cada lista a cada loop
-                glColor4fv(colors[vertex])
+                #glColor4fv(colors[vertex])
                 glVertex3fv(vertices[vertex])#desehando as faces usando triangulos, usando os loopes acima
         glEnd()
         glPopMatrix()#fecha a matriz
@@ -76,19 +89,20 @@ class PrimitiveObjects:
         glEnd()
 
     def esfera(self, raio, slices, stacks):
-        for i in range(stacks):
-            lat0 = math.pi *(-0.5 + float(i) / stacks)
-            z0 = raio * math.sin(lat0)
-            zr0 = raio * math.cos(lat0)
+        
+        for i in range(stacks ):
+            lat0 = math.pi *(-0.5 + float(i) / stacks) 
+            z0 = raio * math.sin(lat0) 
+            zr0 = raio * math.cos(lat0) 
 
-            lat1 = math.pi *(-0.5 + float(i + 1) / stacks)
-            z1 = raio * math.sin(lat1)
+            lat1 = math.pi *(-0.5 + float(i + 1) / stacks) 
+            z1 = raio * math.sin(lat1) 
             zr1 = raio * math.cos(lat1)
 
             glBegin(GL_QUAD_STRIP)
             for j in range(slices+1):
                 lng = 2 * math.pi * float(j)/slices
-                x = math.cos(lng)
+                x = math.cos(lng) 
                 y = math.sin(lng)
                 glColor4f(j/ slices , i /stacks, 1- (i/stacks), 0.5)
                 glVertex3f(x * zr0, y * zr0, z0)
