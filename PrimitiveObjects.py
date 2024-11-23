@@ -1,14 +1,71 @@
 from OpenGL.GL import *
 import math
+from OpenGL.GLU import *
+from PIL import Image
+
+from numpy import array
+from numpy import uint8
+#imagens
+escolha = {
+    "1" : "world.jpg",
+    "2" : "grass.jpg"
+}
+
+op = escolha["1"]
+
+
 class PrimitiveObjects:
-    def __init__(self, initial_position = [0.0, 0.0, 0.0]):
+    def __init__(self, initial_position = [0.0, 0.0, 0.0], texture_file = op):
         self.position = initial_position
+        self.texture_id = None
+        if texture_file:
+            self.texture_id = self.load_texture(texture_file)
+        #VERTICES DE FACES
         self.verticesQuad = [
-        [-0.5, 0.5, 0.0],
-        [0.5, 0.5, 0.0],
-        [0.5, 0.0, 0.0],
-        [-0.5, 0.0, 0.0]
-        ]
+            [-0.5, 0.5, 0.0],
+            [0.5, 0.5, 0.0],
+            [0.5, 0.0, 0.0],
+            [-0.5, 0.0, 0.0]
+            ]
+    def load_texture(self, texture_file):
+        image = Image.open(texture_file)
+        image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        image = image.transpose(Image.FLIP_LEFT_RIGHT)
+
+        img_data = array(list(image.getdata()), uint8)
+
+        textura_id = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, textura_id)        
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+
+        return textura_id
+
+
+    def esfera(self, x, y, z, radius = 1.0, slices = 20, stacks =20):
+        glPushMatrix()
+        glTranslatef(self.position[0] + x, self.position[1] + y, self.position[2] + z)
+        
+        glRotatef(-90, 1, 0, 0)
+        
+        if self.texture_id:
+            glEnable(GL_TEXTURE_2D)
+            glBindTexture(GL_TEXTURE_2D, self.texture_id) 
+
+        quad = gluNewQuadric()
+        gluQuadricTexture(quad, GL_TRUE)
+        gluSphere(quad, radius, slices, stacks)
+
+        if self.texture_id:
+            glDisable(GL_TEXTURE_2D)
+        
+        glPopMatrix()#fecha a matriz
+
 
     def cube(self, x, y, z):
         #vertices do cubo
@@ -41,6 +98,16 @@ class PrimitiveObjects:
             [0, 1, 0],
             [0, -1, 0]
         ]
+        UVS = [
+            [0,0], [1,0], [1,1], [0,1],
+            [0,0], [1,0], [1,1], [0,1],
+            [0,0], [1,0], [1,1], [0,1],
+            [0,0], [1,0], [1,1], [0,1],
+            [0,0], [1,0], [1,1], [0,1],
+            [0,0], [1,0], [1,1], [0,1],
+        ]
+
+
         color = [0.6, 0.6, 0.6, 1]
         colors = [
             [1, 0, 0, 0.8], [0, 1, 0, 0.8], [0, 0, 1, 0.8], [1, 1, 0, 0.8], [1, 0, 1, 0.8], [0, 1, 1,0.8 ], [1, 1, 1, 0.8], [1, 0.5, 0, 0.8]
@@ -52,14 +119,22 @@ class PrimitiveObjects:
 
         glPushMatrix()#abre a matriz
         glTranslatef(self.position[0] + x, self.position[1] + y, self.position[2] + z)
+
+        if self.texture_id:
+            glEnable(GL_TEXTURE_2D)
+            glBindTexture(GL_TEXTURE_2D, self.texture_id)
+
         #iniciando a contrução dele
         glBegin(GL_QUADS)
         for i, face in enumerate(faces):#passando um laço em cada lista(face)
             glNormal3fv(normais[i])
-            for vertex in face:#passando um laço em cada valor de de cada lista a cada loop
+            for j, vertex in enumerate(face):#passando um laço em cada valor de de cada lista a cada loop
+                glTexCoord2fv(UVS[j])
                 #glColor4fv(colors[vertex])
                 glVertex3fv(vertices[vertex])#desehando as faces usando triangulos, usando os loopes acima
         glEnd()
+        if self.texture_id:
+            glDisable(GL_TEXTURE_2D)
         glPopMatrix()#fecha a matriz
 
 
@@ -88,7 +163,7 @@ class PrimitiveObjects:
                 glVertex3fv(vertices[vertex])
         glEnd()
 
-    def esfera(self, raio, slices, stacks):
+    def esfera1(self, raio, slices, stacks):
         
         for i in range(stacks ):
             lat0 = math.pi *(-0.5 + float(i) / stacks) 
@@ -111,8 +186,6 @@ class PrimitiveObjects:
         
 
     #Desenhando figuras Bidimensionais
-    
-    
     
     #função pra desenhar usando os vertices
     def quads(self):
@@ -137,3 +210,5 @@ class PrimitiveObjects:
             angle = 2* math.pi* i/segment #calculando o angulo de acordo com a quantidade de segmentos 
             glVertex2f(x + math.cos(angle) * raio, y + math.sin(angle) *raio)#desenhando os triangulos usando o angulo 
         glEnd()
+
+    

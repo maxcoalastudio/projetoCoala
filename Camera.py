@@ -13,7 +13,7 @@ class Camera:
         self.camera_pos = array([0.0, 0.0, 3])
         self.camera_front = array([0.0, 0.0, -1.0])
         self.camera_up = array([0.0, 1.0, 0.0])
-        self.camera_speed = 0.001
+        self.camera_speed = 0.02
         self.yaw, self.pitch = -90, 0.0 # rotação eixo y, eixo x para primeira pessoa
         self.keys={}
 
