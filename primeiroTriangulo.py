@@ -20,7 +20,7 @@ def render():
     glClear(GL_COLOR_BUFFER_BIT)                                                        #limpando o buffer dos pixels
     glBegin(GL_TRIANGLES)                                                               #função desenha inicio com um parametro de primitiva
     for v, c in zip(vertices, cores):                                                   #for pela lista de  lista de vertice e cores simuntaneamente e fomando pares com o valor do indice de cada lista
-        glColor3fv(c)                                                                   #colore cada vertice em sua sequencia 
+        glColor3fv(c)                                                                   #colore cada vertice em sua sequencia
         glVertex2fv(v)                                                                  #desenhando cada vertice em seu lugar 
     glEnd()                                                                             #função desenha final
 

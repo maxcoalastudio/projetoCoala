@@ -8,7 +8,7 @@ class Lights():
         glEnable(GL_LIGHTING)
         glEnable(GL_DEPTH_TEST)
 
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente)# cor da luz  ambiente
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente)# cor da luz
 
     def configurar_luz_pontual(self, light_id, position, color, intensity):
         glLightfv(light_id, GL_POSITION, position + [1])

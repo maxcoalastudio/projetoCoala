@@ -11,15 +11,16 @@ escolha = {
     "2" : "grass.jpg"
 }
 
-op = escolha["1"]
-
 
 class PrimitiveObjects:
-    def __init__(self, initial_position = [0.0, 0.0, 0.0], texture_file = op):
+    def __init__(self, initial_position = [0.0, 0.0, 0.0], radius = 1, texture_atlas=None, texture_indices=[0,1,2,3,4,5], texture_file = escolha["1"]):
+        self.radius = radius
+        self.texture_atlas = texture_atlas
+        self.texture_indices = texture_indices
         self.position = initial_position
         self.texture_id = None
-        if texture_file:
-            self.texture_id = self.load_texture(texture_file)
+        self.texture_file = texture_file
+
         #VERTICES DE FACES
         self.verticesQuad = [
             [-0.5, 0.5, 0.0],
@@ -27,33 +28,17 @@ class PrimitiveObjects:
             [0.5, 0.0, 0.0],
             [-0.5, 0.0, 0.0]
             ]
-    def load_texture(self, texture_file):
-        image = Image.open(texture_file)
-        image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        image = image.transpose(Image.FLIP_LEFT_RIGHT)
 
-        img_data = array(list(image.getdata()), uint8)
-
-        textura_id = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, textura_id)        
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
-
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-        return textura_id
-
-
-    def esfera(self, x, y, z, radius = 1.0, slices = 20, stacks =20):
+    def esfera(self, x, y, z, radius = 1.0, slices = 20, stacks =20 ):
         glPushMatrix()
         glTranslatef(self.position[0] + x, self.position[1] + y, self.position[2] + z)
         
         glRotatef(-90, 1, 0, 0)
         
         if self.texture_id:
+            print(self.texture_id)
+            print(self.texture_file)
+
             glEnable(GL_TEXTURE_2D)
             glBindTexture(GL_TEXTURE_2D, self.texture_id) 
 
@@ -70,25 +55,25 @@ class PrimitiveObjects:
     def cube(self, x, y, z):
         #vertices do cubo
         vertices = [
-            [-0.5, -0.5, -0.5],#traseiras (-z) construidos da esquerda pra direita de cima para baixo
-            [0.5, -0.5, -0.5],
-            [0.5, 0.5, -0.5],
-            [-0.5, 0.5, -0.5],
+            [-self.radius, -self.radius, -self.radius],#traseiras (-z) construidos da esquerda pra direita de cima para baixo
+            [self.radius, -self.radius, -self.radius],
+            [self.radius, self.radius, -self.radius],
+            [-self.radius, self.radius, -self.radius],
             
-            [-0.5, -0.5, 0.5],#frontais (+z)construido de baixo para cima da direita para esquerda
-            [0.5,-0.5, 0.5],
-            [0.5, 0.5, 0.5],
-            [-0.5, 0.5, 0.5],
+            [-self.radius, -self.radius, self.radius],#frontais (+z)construido de baixo para cima da direita para esquerda
+            [self.radius, -self.radius, self.radius],
+            [self.radius, self.radius, self.radius],
+            [-self.radius, self.radius, self.radius],
             
         ]
         #vamos passar as faces por que futuramente vamos passar cores a elas
         faces = [
-            [0, 1, 2, 3],#frente
-            [1, 5, 6, 2],#direita
-            [5, 4, 7 ,6],#traseira
-            [4, 0, 3, 7],#esquerda
-            [3, 2, 6, 7],#superior
-            [4, 5, 1, 0],#inferior
+            [3, 0, 1, 2],#frente
+            [7, 3, 2, 6],#direita
+            [4, 7, 6 ,5],#traseira
+            [0, 4, 5, 1],#esquerda
+            [1, 5, 6, 2],#superior
+            [4, 0, 3, 7],#inferior
         ]
         normais = [
             [0, 0, -1],
@@ -98,16 +83,8 @@ class PrimitiveObjects:
             [0, 1, 0],
             [0, -1, 0]
         ]
-        UVS = [
-            [0,0], [1,0], [1,1], [0,1],
-            [0,0], [1,0], [1,1], [0,1],
-            [0,0], [1,0], [1,1], [0,1],
-            [0,0], [1,0], [1,1], [0,1],
-            [0,0], [1,0], [1,1], [0,1],
-            [0,0], [1,0], [1,1], [0,1],
-        ]
 
-
+        """
         color = [0.6, 0.6, 0.6, 1]
         colors = [
             [1, 0, 0, 0.8], [0, 1, 0, 0.8], [0, 0, 1, 0.8], [1, 1, 0, 0.8], [1, 0, 1, 0.8], [0, 1, 1,0.8 ], [1, 1, 1, 0.8], [1, 0.5, 0, 0.8]
@@ -116,24 +93,27 @@ class PrimitiveObjects:
         glMaterialfv(GL_FRONT, GL_SPECULAR, color)
         glMaterialfv(GL_FRONT, GL_AMBIENT, color)
         glMaterialfv(GL_FRONT, GL_SHININESS, 0.5)
+        """
+
 
         glPushMatrix()#abre a matriz
         glTranslatef(self.position[0] + x, self.position[1] + y, self.position[2] + z)
 
-        if self.texture_id:
+        if self.texture_atlas:
             glEnable(GL_TEXTURE_2D)
-            glBindTexture(GL_TEXTURE_2D, self.texture_id)
+            glBindTexture(GL_TEXTURE_2D, self.texture_atlas.texture_id)
 
         #iniciando a contrução dele
         glBegin(GL_QUADS)
         for i, face in enumerate(faces):#passando um laço em cada lista(face)
             glNormal3fv(normais[i])
+            uvs = self.texture_atlas.get_uv_coords(self.texture_indices[i])
             for j, vertex in enumerate(face):#passando um laço em cada valor de de cada lista a cada loop
-                glTexCoord2fv(UVS[j])
+                glTexCoord2fv(uvs[j])
                 #glColor4fv(colors[vertex])
                 glVertex3fv(vertices[vertex])#desehando as faces usando triangulos, usando os loopes acima
         glEnd()
-        if self.texture_id:
+        if self.texture_atlas:
             glDisable(GL_TEXTURE_2D)
         glPopMatrix()#fecha a matriz
 
