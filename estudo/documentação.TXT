@@ -190,3 +190,89 @@ for v, c in zip(vertices, cores):
     glVertex3fv(c)                  #esse v no final indica que estou passando todos os valores RGB de uma so vez
     glVertex2fv(v)                  
 glEnd() 
+
+o uqe é primitiva ?
+primitiva são componentes que uma ferramenta oferece ao programador para montar o seus objetos
+no caso da opengl são bem simples e descritas em um sistema de coordenadas 
+assista video 7 
+
+no nosso projeto temos uma lista de vertices 
+vertices = [
+    [-0.8, -0.4],
+    [-0.4, -0.8],
+    [0.4, -0.8],
+    [0.8, -0.4],
+    [0.8, 0.4],
+    [0.4, 0.8],
+    [-0.4, 0.8],
+    [-0.8, 0.4],
+]
+
+como vou desenhar eles ?
+são 8 pares de coordenadas [x , y] 
+vamos desenhar , no opengl legacy quando formos desenhar quaquer coisa e digitar o par de comandos que inicializa e que fecha como se fosse uma tag.
+glBegin() e a glEnd()
+e a primeira primitiva que vamos desenhar é a primitiva GL_POINTS que desenha pontos na tela
+glBegin(GL_POINTS)
+vamos passar um laço por nossos vertices e vamos dizer qual tipo de dado vamos passar um vertex(processamento) 2D que é float e indica vertices()um conjunto de valos em um unico parametro
+se eu quiser alterar a cor do sistema para uma cor diferente eu posso apenas passar antes dos pontos o glColor3f que rebresenta 3 cores no caso rgb, e passar 3 valores que va de 0 a 1 floats
+se quiser alterar o tamanho padrão que é 1 pixel usando a instrução glPointSize(tamanho)
+
+agora abaixo do glEnd() vamos desenhar segmentos de retas usando o GL_LINES
+glBegin(GL_LINES) E VAMOS PASSAR OS MESMOS VERTICES DE ANTES SO QUE USANDO A PRIMITIVA GL_LINES
+for l in vertices:
+    glVertex2fv(l)
+glEnd()
+ele vai desenhar 4 segmentos de retas , ou seja 8 vertices com r pares de retas ,para conectar todos teriamos que digitar a instrução d vertice novamente
+a linah tem a largura de um pixel tambem , se quisermos alterala tambem podemos usar o glLineWidth(tamanho em pixels)
+a terceira primitiva de hoje que vai ser uma sequencia de seguimentos de retas  vamos usar a primitiva GL_LINE_STRIP
+
+glBegin(GL_LINE_STRIP)
+    for ls in vertices:
+        glVertex2fv(ls)
+glEnd()
+
+a proxima primitiva é GL_LINE_LOOP ela fecha o circuito das linhas por onde começou
+
+glBegin(GL_LINE_LOOP)
+    for lp in vertices:
+        glVertex2fv(lp)
+glEnd()
+ então essas são as primitivas pra desenhar pontos e linhas (GL_POINTS, GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP)
+
+ AGORA VAMOS aprender a preencher areas , por que ate agora só criamos linhas e pontos
+
+ a opengl moderna so tem primitivas para criar triangulos GL_TRIANGLES
+ E SE USARMOS ELE para o nossos pontos atuais , vc vai perceber que ele apenas vai formar 2 triangulos pois ele salta o vertice para o proximo
+
+podemos observar tambem que não tem as linhas de bordas , ele renderiza apenas a area interna , e se eu passar os mesmos vertices pra esse modelo não iria funcionar a contornar os triangulos , e em falar nisso temos um jeito de renderizar essas arestas de forma inteligente
+antes de chamar o desenho da ultima primitiva glPolygonMode(LG_FRONT_AND_BACK, GL_FILL) e essa função muda como é rasterizado os poligonos
+ela recebe 2 argumentos, o primeiro é que tipo de faces queremos alterar o modo de renderização, O SEGUNDO É a cor de preenchimento, SE QUISERMOS o modo wire frame podemos colocar ao invez de GL_FILL  usamos o GL_LINE
+mas tem uma forma melhor de fazer isso usando shaders mas ja da pra demonstrar
+
+    glPolygonMode(GL_FRONT, GL_FILL)
+    glBegin(GL_TRIANGLES)
+    for lP in vertices:
+        glVertex2fv(lP)
+    glEnd() 
+    
+    glPolygonMode(GL_FRONT, GL_LINE)
+    glColor3f(0, 0, 0)
+    glBegin(GL_TRIANGLES)
+    for lP in vertices:
+        glVertex2fv(lP)
+    glEnd()  
+
+proxima primitiva!
+vamos ver agora uma primitiva que desenha um loop de triangulos conectados pelo primeiro vertice, o GL_TRIANGLE_FAN 
+glPolygonMode(GL_FRONT, GL_LINE)
+    glColor3f(0, 0, 0)
+    glBegin(GL_TRIANGLE_FAN)
+    for lP in vertices:
+        glVertex2fv(lP)
+    glEnd()
+
+vamos ver outro tipo de primitiva de trianglo , mas temos que mudar as ordens dos vertices , nosso modelo agora esta seguindo antihorario 
+pra usarmos o GL_TRIANGLE_STRIP , temos que alternar um triangulo de baixo com de cima, nesse modo ele faz o primeiro triangulo com o primeiro vertice ,
+mas do quarto vertice em diante ele vai se conectar com os dois ultimos, usando um algoritimo for com loop de vertice valor(indice) com vertice valor (indice-2)
+
