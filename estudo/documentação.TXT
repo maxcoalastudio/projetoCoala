@@ -275,4 +275,143 @@ glPolygonMode(GL_FRONT, GL_LINE)
 vamos ver outro tipo de primitiva de trianglo , mas temos que mudar as ordens dos vertices , nosso modelo agora esta seguindo antihorario 
 pra usarmos o GL_TRIANGLE_STRIP , temos que alternar um triangulo de baixo com de cima, nesse modo ele faz o primeiro triangulo com o primeiro vertice ,
 mas do quarto vertice em diante ele vai se conectar com os dois ultimos, usando um algoritimo for com loop de vertice valor(indice) com vertice valor (indice-2)
+isso é bom pra fazer uma sequencia de triangulos como laterais de cilindros 
+
+bom essas são as primitivas mais comuns e mais usadas no opengl moderno
+
+o legacy removel as outras formas primitivas.
+
+vamos entrar de vez no opengl moderno
+vamos trabalhar em enviar os dados para a memoria vram(memoria da placa de video)
+isso de forma mais eficiente do que a forma que ja fizemos 
+isso torna a execução da aplicação muito mais rapida    
+o Opengl dispoe de uma ferramenta pra isso o Vertex Buffer Object (VBO) 
+opengl legacy = são funções do opengl ate versão 3
+opengl moderno = são funções que substituiram as do opengl legacy, que eram usados para fazer testes rapidos com serios problemas de eficiencia
+quando vamos desenhar qualquer coisa usando o legacy temos que desenha usando glBegin e glEnd passando vertice a vertice
+se meu modelo tiver mitos vertices eese modelo vai ser o gargalo da nossa eficiencia , pois a gpu so pode começar a desenha quando o loop  acabar de enviar 
+so consigo renderizar a cena inteira quando enviar todo mundo enquanto o laço esta rodando na cpu
+
+então uma ideia que surgiu quando aconteceu este tipo de gargalo foi a seguinte: e se pudermos alocar uma espaço dentro da vram(memoria de video da placa de video)
+ai enviamos o conteudo todo de uma vez e deixo direto lá sem precisar ficar enviando coordenada por coordenada o tempo todo
+essa é a ideia do vertex buffer object (VBO) um espaço de memoria dentro da placa de video usada pra receber nossos objetos
+VBO = espaço alocado dentro da VRAM para nossos objetos não precisar passar pela cpu
+vamos criar nosso script vbo_vba.py
+import glfw
+from OpenGL.GL import * 
+width, height = 1920, 1080
+vertices = [
+    [-0.8, -0.8],
+    [0.0, -0.8],
+    [-0.4, 0.0],
+    [0.0, -0.8],
+    [0.8, -0.8],
+    [0.4, 0.0],
+    [-0.4, 0.0],
+    [0.4, 0.0],
+    [0.0, 0.8],
+]
+#Função PARA CONFIGURAÇÕES INICIAIS DA MINHA aplicação
+def init():
+    glClearColor(1, 1, 1, 1)#cor do fundo da janela
+#função para atualizar a renderização da cena
+def render():
+    glClear(GL_COLOR_BUFFER_BIT)                                                        #limpando o buffer dos pixels
+
+    glColor3f(1,0,0)                                          
+    glBegin(GL_TRIANGLES)                                                               #função desenha inicio com um parametro de primitiva
+    for v in vertices:
+        glVertex2fv(v)                                                                  #desenhando cada vertice em seu lugar 
+    glEnd() 
+#Função Principal
+def main():
+    glfw.init()                                                                         #inicializando a API GLFW
+    #criando a janela(largura e altura, nome da janela, monitor, janela compartilhada)
+    window = glfw.create_window(width, height, 'Coala Engine Ver0.0.1', None, None)
+    glfw.make_context_current(window)                                                   #CRIANDO O CONTEXTO OpenGL da janela
+    init()
+    while not glfw.window_should_close(window):                                         #Enquanto a janela nao é fechada
+        glfw.poll_events()                                                              #tratamento de eventos
+        render()	    
+        glfw.swap_buffers(window)                                                       #troca de frame buffer(informação de cores dos pixels)
+    glfw.terminate()                                                                    #finaliza a API GLFW
+
+if __name__ == '__main__':
+    main()
+
+
+esse script se parece com o antigo mas desenha a trindade de Th Legend of zelda  
+
+agora nosso objetivo é enviar a lista de vertices pra VRAM o primeiro passo é importar o modulo numpy as np 
+estamos insirindo esse modulo por que vamos ter que passar esses vertices para a memoria da placa de video 
+so que como o python usa tipagem dinamica e não sabemos a definição da memoria que ele esta usando (float32bits, float64bits, doble ) 
+quem programa em linguagem c++ tem vantagens ja que usam valores fixos e tipagem estatica
+então vamos usar uma função de numpy para converter a nossa lista de vertices para uma lista de floats de 32 bibliotecase para fazer isso
+primeiro que vamos ter que ter acesso global dos vertices então dentro de init() vamos fazer
+global vertices 
+e abaixo da limpeza de fundo da janela vamos fazer 
+vertices = np.array(vertices, np.dtype(np.float32)) # o primeiro argumento é a lista de valores, o segundo é o tipo de valor e dentro desse dtype fica sendo float32
+entao agora temos varias lista dentro de uma e nas listas temos valores setados com floats de 32 bits ou 4bytes
+
+agora vamos enviar estes valores para nossa placa de video
+e percebaque estamos fazendo no init e nao no render , pois vamos fazer isso uma unica vez 
+o objetivo é otimizar então apenas uma vez basta
+
+as instruçõe que vamos precisar são 3:
+1#criar o VBO(vertex buffer object) 
+2#tornar o VBO ativo por que quando criamos o objeto ele não esta ativo pois o opengl é uma maquina de estado
+3#eviar  os dados para esse VBO
+
+#1 A INSTRUÇÃO PARA CRIAR UM vertex buffer object
+vboId = glGenBuffer(1)  # ele pede dois parametros , o primeiro é o numero de buffers que devem ser gerados , no caso nosso 1, o segundo é um ponteiro para array de ids de buffers mas em python não é necessario por que o retorno da função é o id do buffer ou uma lista de ids
+no c++ o parametro de buffers é usado para a saida por que a variavel é escrita devido a passagem por referencia
+vamos colocar o conteudo em uma variavel
+o vbo não tem tamanho e nem esta ativo
+
+#2 tornando o vbo ativo
+glBindBuffer: essa instrução voce diz o seguinte  o tipo de buffer que vamos desejar ativo no caso é GL_ARRAY_BUFFER, e existem varios tipos de buffer mas vamos usar esse que é um array
+glBindBuffer(GL_ARRAY_BUFFER, vboId) # que pede 2 parametros o alvo dos buffers que sera conectada e o segundo é o buffer que é o id de um buffer
+o segundo argumentosendo sendo o indentificador que acabamos de criar(VBO)
+agora vamos usar a instrução de enviar os dados glBufferData() com os parametros target: especifica o tipo de buffer a quao o buffer sera conectados, size Especifica o tamanho em bytes do buffer, data especifica o ponteiro para os dados que serão copiados, usage especifica o padrão de uso esperado para os dados
+glBufferData(GL_ARRAY_BUFFER, #tipo de buffer
+            vertices.nbytes, #o tamanho em bytes dos valores dos vertices (9 vertices x 2valores de pontos flutuantes= 18, 18 x 4bytes = 64 bytes  mas podemos usar o campo do ARRAY que calcula esse valor automaticamente que é o .nbytes)
+            vertices, #aqui entra os dados 
+            GL_STATIC_DRAW )#os tipos de uso são leitura(GL_STATIC_READ), levar dados pra fazer desenhos uma vez (GL_STATIC_DRAW), levar os dados e ficar alterando o tempo inteiro(GL_DYNAMIC_DRAW)
+vamos usar os dados desse buffer pra desenha e não modificar os dados desse buffers sem mudar as coordenadas, a nao ser que eu fosse fazer por exemplo uma animação 
+
+deposi de enviar os dados eu ainda não posso pedir pra desenhar , pois o opengl não sabe que dados são esses, se são cores , coordenadas , vetores, matrizes, 2D ou 3D
+DEPOIS DE ENVIAR os dados do buffer , descrever como estão organizados os dados dentro desse buffer, oque vammos chamar de descrição atributo   
+glVertexAttribPointer(0, #codigo do atributo(posição do vertice)
+                      2, # nossos valores são 2D então são 2 valores de ponto flutuante
+                      GL_FLOAT, # qual tipo de valores dos nossos atributos, no caso é float
+                      FL_FALSE, #NORMALIZAÇÃO um campo ficar entre 0 e 1, como normalizar o valor de 1 a 255 de cores como 0 a 1, mas não vamos normalizar
+                      2*4, # de aquantos em quantos bytes vou ter que pular dentro do meu buffer pra proxima posição, seria 2 floar, ou seja 2x4bytes = 8bytes
+                      ctypes.c_void_p(0), # onde que esse atributo começa ? no começo no meio ? o nosso atributo começa pelo 0, porem o problema que a API OpenGL ela foi escrita com a linguagem C em mente e esse valor não era pra ser 0 e sim um ponteiro para memoria da linguagem  C e python não trabalha com ponteiros , vamos fazer uma minigambiarra aqui !, vamos importar o modulo ctypes no nosso script(um modulo do python pra usar tipos da linguagem C) e vamos usar o c_void_p() um endereço de memoria que foi feito pra apontar pra quaquer coisa  
+) #parametros(indice: um atributo de vertice, size: numero de componentes por atributo,type: tipo de dados de cada componentes, normalized: especifica os valores que tem que ser normalizados, stride:especifica o espaçamento em bytes entre dois atributos consecutivos, pointer: Especifica o deslocamenrto do primeiro componente do artibuto em relação aos dados do buffer)
+agora vamos tornar nosso atributo ativo
+glEnableVertexAttribArray(0)#o 0 aqui é o codigo definido para o atributo, é o primeiro elemento que definimos na função anterior
+
+no opengl moderno não é suficiente criar um VBO(vertex buffer Object) temos que criar tambem VAO(vertex array Object)
+um vertex array Object é como se fosse um objeto que incorpora o vbo quanto os atributos que descrevemos pra ele, ele encapsula tudo dentro de um objeto
+vamos criar ele primeiro acima de vboId
+vaoId = glGenVertexArrays(1) # o 1 é aa quantidade de vertex array a serem gerados 
+vamos tornalo ativo 
+glBindVertexArray(vaoId) #ativado e quando ele esta ativado tudo que esta sendo definido depois dele agora é como se estivesse sendo incorporado dentro do objeto vaoId
+entaão no final do codigo podemos desativar ou não , caso eu queira varios objetos na minha cena eu não posso deixalo ativo 
+glBindVertexArray(0) tornando ele inativo, e podemos acima dele tornar o buffer inativo, ja que ele fica dentro do array
+glBindBuffer(, GL_ARRAY_BUFFER, 0) # esse fica acima
+
+vamos n função render e tornar o buffer ativo abaixo da limpeza dos buffers
+
+glBindVertexArray(vaoId)# percebe que esse vaoId é uma variavel local da função init, então defina ele globalmente abaixo da lista de vertices 
+vaoId = 0
+dentro do init() vamos complementar 
+global vertices, vaoId 
+agora a referencia pra variavel dentro de init é a que esta global e portanto podemos acessala no render
+glDrawArray(GL_TRIANGLES, # primitiva
+            0, #posição de inicio do desenho
+            qtdVertices, quantos elementos queremos passar, podemos colocar abaixo da definição da lista de vertices uma variavel qtdVertices = len(vertices), assim não precisamos passar sempre a quantidade, sendo que podemos desenhar mais verticves e triangulos 
+)# essa instrução que substitui o glBegin e glEnd , e ele recebe tres argumentos (mode: primitiva a ser desenhada, first: o indice inicial do vao ativo no momento, count: quantidade de vertices a serem renderizados)
+e depois disso desativo 
+glBindVertexArray(0) # 0 sendo o codigo do objeto, ele agora deveria desenha porem o opengl moderno desenha usando shaders(programs que afetem o processamento de vertices e processamento de fragmento) 
 
